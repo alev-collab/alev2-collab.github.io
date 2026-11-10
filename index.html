@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Alec's AI operations portfolio: measurable conversational support systems for e-commerce brands.">
+<title>Alec · AI Operations &amp; Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0b1015; --surface:#131b23; --surface-2:#0f171e; --border:#30404d; --text:#f0f5f7; --muted:#b7c5ce; --accent:#54d3fa; --ok:#6fe3a6; --warn:#ffc86b; }
+  *, *::before, *::after { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; min-width:0; color:var(--text); font-family:"IBM Plex Sans",sans-serif; background:var(--bg); overflow-x:hidden; }
+  .site-shell { width:100%; background:radial-gradient(ellipse 65% 35% at 78% 8%,rgba(54,150,182,.14),transparent 75%),var(--bg); }
+  .site-inner { width:min(100% - 40px,1180px); margin-inline:auto; }
+  .display { font-family:"Bricolage Grotesque",sans-serif; letter-spacing:-.055em; }
+  .mono { font-family:"IBM Plex Mono",monospace; }
+  .eyebrow { font-family:"IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; font-size:12px; color:var(--accent); }
+  a:focus-visible { outline:3px solid #ffdb78; outline-offset:4px; border-radius:5px; }
+
+  /* Top bar + progress */
+  .topline { border-bottom:1px solid var(--border); position:relative; }
+  .topline-inner { min-height:70px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+  .progress { position:fixed; top:0; left:0; right:0; height:2px; background:var(--accent); transform-origin:0 50%; transform:scaleX(0); z-index:20; }
+
+  /* Hero */
+  .hero { padding:clamp(56px,9vw,120px) 0 clamp(56px,7vw,96px); display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:clamp(32px,5vw,64px); align-items:center; }
+  .hero h1 { font-size:clamp(2.6rem,6vw,5.6rem); line-height:.98; margin:18px 0 26px; }
+  .hero h1 .accent { color:var(--accent); }
+  .hero-description { max-width:620px; line-height:1.7; color:var(--muted); }
+  .action-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:34px; }
+  .action { min-height:50px; padding:13px 20px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; text-decoration:none; font-weight:600; transition:transform .2s ease,background-color .2s ease,border-color .2s ease; }
+  .action:hover { transform:translateY(-2px); }
+  .action-primary { background:var(--accent); color:#071117; }
+  .action-secondary { border:1px solid #678091; color:var(--text); background:rgba(19,27,35,.7); }
+
+  /* Live routing console (hero visual) */
+  .console { border:1px solid var(--border); border-radius:16px; background:var(--surface-2); overflow:hidden; box-shadow:0 30px 80px -40px rgba(84,211,250,.35); }
+  .console-bar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .console-dots { display:flex; gap:6px; }
+  .console-dots i { width:9px; height:9px; border-radius:50%; background:#34434f; display:block; }
+  .live { display:inline-flex; align-items:center; gap:8px; color:var(--ok); font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em; }
+  .live::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 0 rgba(111,227,166,.6); animation:pulse 1.8s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(111,227,166,.55)} 70%{box-shadow:0 0 0 9px rgba(111,227,166,0)} 100%{box-shadow:0 0 0 0 rgba(111,227,166,0)} }
+  .feed { list-style:none; margin:0; padding:8px 0; min-height:300px; }
+  .feed li { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid rgba(48,64,77,.5); font-size:14px; opacity:0; transform:translateX(-14px); transition:opacity .45s ease, transform .45s cubic-bezier(.2,.8,.2,1); }
+  .feed li.show { opacity:1; transform:none; }
+  .feed li:last-child { border-bottom:none; }
+  .feed .id { font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); }
+  .feed .topic { color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tag { font-family:"IBM Plex Mono",monospace; font-size:11px; padding:4px 8px; border-radius:6px; border:1px solid; white-space:nowrap; }
+  .tag.ai { color:var(--ok); border-color:#2f6f53; background:#10261d; }
+  .tag.human { color:var(--warn); border-color:#7a5d24; background:#2a2010; }
+  .console-foot { display:flex; justify-content:space-between; gap:12px; padding:14px 16px; border-top:1px solid var(--border); font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); }
+  .console-foot b { color:var(--accent); font-weight:600; }
+
+  /* Sections */
+  .section { padding:clamp(72px,9vw,118px) 0; border-top:1px solid var(--border); }
+  .section-heading { max-width:820px; line-height:1.06; font-size:clamp(2rem,4.2vw,3.2rem); }
+  .section-lead { max-width:720px; line-height:1.7; color:var(--muted); }
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .9s cubic-bezier(.2,.8,.2,1); transition-delay:var(--d,0s); }
+  .reveal.in { opacity:1; transform:none; }
+
+  /* Metrics */
+  .proof-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-top:34px; }
+  .proof-card { min-width:0; border:1px solid var(--border); background:var(--surface); border-radius:14px; padding:22px 18px; display:flex; flex-direction:column; gap:12px; transition:border-color .25s ease, transform .25s ease; }
+  .proof-card:hover { border-color:#5b98ae; transform:translateY(-3px); }
+  .metric-number { font-family:"Bricolage Grotesque",sans-serif; font-size:clamp(1.85rem,3vw,2.8rem); font-weight:700; line-height:1; letter-spacing:-.055em; white-space:nowrap; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .metric-label { line-height:1.5; color:var(--muted); font-size:.9rem; }
+
+  /* Pipeline: a request travels through the system and the path draws on scroll */
+  .pipeline { position:relative; margin-top:44px; }
+  .pipeline svg { width:100%; height:auto; overflow:visible; display:block; }
+  .pipe-base { fill:none; stroke:#243440; stroke-width:2; }
+  .pipe-draw { fill:none; stroke:var(--accent); stroke-width:2.5; stroke-linecap:round; stroke-dasharray:var(--len,1000); stroke-dashoffset:var(--len,1000); transition:stroke-dashoffset 1.8s cubic-bezier(.3,.7,.2,1); }
+  .pipeline.in .pipe-draw { stroke-dashoffset:0; }
+  .pipe-node { fill:var(--surface); stroke:var(--border); stroke-width:1.5; opacity:0; transition:opacity .5s ease, stroke .5s ease; }
+  .pipeline.in .pipe-node { opacity:1; }
+  .pipeline.in .pipe-node.hot { stroke:var(--accent); }
+  .pipe-label { font-family:"IBM Plex Mono",monospace; font-size:13px; fill:var(--text); opacity:0; transition:opacity .5s ease .4s; }
+  .pipe-sub { font-family:"IBM Plex Sans",sans-serif; font-size:12px; fill:var(--muted); opacity:0; transition:opacity .5s ease .5s; }
+  .pipeline.in .pipe-label, .pipeline.in .pipe-sub { opacity:1; }
+  .pipe-dot { fill:var(--accent); filter:drop-shadow(0 0 6px rgba(84,211,250,.8)); }
+  .pipe-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-top:26px; }
+  .pipe-steps div { border-top:2px solid var(--border); padding-top:14px; color:var(--muted); font-size:14px; line-height:1.6; }
+  .pipe-steps b { display:block; color:var(--text); font-family:"Bricolage Grotesque",sans-serif; font-size:17px; margin-bottom:6px; }
+
+  /* Work cards */
+  .project-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-top:34px; }
+  .project-card { position:relative; overflow:hidden; display:flex; flex-direction:column; padding:clamp(22px,3vw,30px); border:1px solid var(--border); background:var(--surface); border-radius:14px; text-decoration:none; color:inherit; transition:border-color .25s ease, transform .25s ease; min-width:0; }
+  .project-card::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; background:var(--accent); transform:scaleX(0); transform-origin:0 50%; transition:transform .5s ease; }
+  .project-card:hover { border-color:#5b98ae; transform:translateY(-4px); }
+  .project-card:hover::after { transform:scaleX(1); }
+  .project-card h3 { line-height:1.15; font-size:1.35rem; margin:12px 0; }
+  .project-card p { line-height:1.65; color:var(--muted); margin-bottom:20px; }
+  .project-stats { margin-top:auto; padding:12px 0 16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .stat-tag { padding:6px 10px; border:1px solid #397084; border-radius:6px; background:#122d39; color:#bceeff; font-family:"IBM Plex Mono",monospace; font-size:.75rem; line-height:1.4; }
+  .project-link { align-self:flex-start; min-height:40px; display:inline-flex; align-items:center; color:var(--accent); font-weight:600; margin-top:auto; }
+
+  /* Method */
+  .step-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-top:34px; }
+  .step-card { padding:26px; border:1px solid var(--border); background:var(--surface); border-radius:14px; min-width:0; }
+  .step-card h3 { line-height:1.25; font-size:1.2rem; margin:10px 0; }
+  .step-card p { line-height:1.65; color:var(--muted); }
+  .method-note { margin-top:24px; border-left:3px solid var(--accent); padding:14px 20px; background:#15252f; line-height:1.7; color:var(--muted); }
+  .positioning { background:#101d25; }
+
+  .footer { padding:42px 0; border-top:1px solid var(--border); color:var(--muted); }
+
+  /* Responsive */
+  @media (max-width:1000px) {
+    .proof-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .project-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width:860px) {
+    .hero { grid-template-columns:1fr; }
+  }
+  @media (max-width:700px) {
+    .site-inner { width:min(100% - 32px,1180px); }
+    .topline-inner { min-height:64px; }
+    .proof-grid,.project-grid,.step-grid,.pipe-steps { grid-template-columns:1fr; }
+    .metric-number { font-size:2.35rem; }
+    .action-row { flex-direction:column; align-items:stretch; }
+    .feed { min-height:0; }
+  }
+
+  /* Motion preferences: show everything still, no movement */
+  @media (prefers-reduced-motion:reduce) {
+    html { scroll-behavior:auto; }
+    *,*::before,*::after { animation:none !important; transition-duration:.01ms !important; }
+    .reveal, .feed li { opacity:1; transform:none; }
+    .pipe-draw { stroke-dashoffset:0; }
+    .pipe-node, .pipe-label, .pipe-sub { opacity:1; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<div class="site-shell">
+  <header class="topline">
+    <div class="site-inner topline-inner">
+      <span class="mono" style="font-size:12px;">ALEC · AI OPERATIONS &amp; SYSTEMS</span>
+      <span class="mono" style="color:var(--muted); font-size:11px;">PORTFOLIO 2026</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero site-inner" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">AI Operations / E-commerce support</p>
+        <h1 id="hero-title" class="display">94.5% <span class="accent">AI resolution</span> rate under <span style="white-space:nowrap">high-volume</span> apparel traffic.</h1>
+        <p class="hero-description">I configure automated workflows that empower the team to scale, fuel company growth, and ensure every customer inquiry receives an accurate, timely resolution.</p>
+        <div class="action-row">
+          <a class="action action-primary" href="#work">Explore the results →</a>
+          <a class="action action-secondary" href="#methodology">See the methodology ↘</a>
+        </div>
+      </div>
+
+      <div class="console" role="img" aria-label="Animated example of incoming support tickets being resolved by AI or escalated to a human">
+        <div class="console-bar">
+          <div class="console-dots"><i></i><i></i><i></i></div>
+          <span class="live">ROUTING LIVE</span>
+        </div>
+        <ul class="feed" id="feed"></ul>
+        <div class="console-foot">
+          <span>AI resolved <b id="ai-count">0</b></span>
+          <span>Escalated <b id="human-count">0</b></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="proof-title">
+      <div class="site-inner">
+        <p class="eyebrow reveal">01 / Selected results</p>
+        <h2 id="proof-title" class="display section-heading reveal" style="--d:.05s">The numbers, with context.</h2>
+        <div class="proof-grid">
+          <article class="proof-card reveal" style="--d:.05s">
+            <span class="metric-number"><span class="count" data-to="94.5" data-dec="1" data-suffix="%">94.5%</span></span>
+            <span class="metric-label">AI resolution rate · Clothing brand case study</span>
+          </article>
+          <article class="proof-card reveal" style="--d:.12s">
+            <span class="metric-number"><span class="count" data-to="29900" data-suffix="+">29,900+</span></span>
+            <span class="metric-label">Resolved by AI · Supplement brand</span>
+          </article>
+          <article class="proof-card reveal" style="--d:.19s">
+            <span class="metric-number"><span class="count" data-to="51">51</span>→<span class="count" data-to="75" data-suffix="%">75%</span></span>
+            <span class="metric-label">Satisfaction · Supplement brand</span>
+          </article>
+          <article class="proof-card reveal" style="--d:.26s">
+            <span class="metric-number"><span class="count" data-to="2163">2,163</span></span>
+            <span class="metric-label">Resolved by AI · Sportswear brand</span>
+          </article>
+          <article class="proof-card reveal" style="--d:.33s">
+            <span class="metric-number"><span class="count" data-to="216" data-suffix=" h">216 h</span></span>
+            <span class="metric-label">Estimated hours saved · Sportswear brand</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="pipeline-title">
+      <div class="site-inner">
+        <p class="eyebrow reveal">02 / How a request moves</p>
+        <h2 id="pipeline-title" class="display section-heading reveal" style="--d:.05s">Every inquiry takes a path. Every exception has a handoff.</h2>
+        <p class="section-lead reveal" style="--d:.1s; margin-top:16px;">The system is built so that routine questions finish inside the AI, and anything outside the rules reaches a person with full context.</p>
+
+        <div class="pipeline" id="pipeline">
+          <svg viewBox="0 0 1000 220" role="img" aria-label="Flow: inbound message, AI agent, rules and guardrails, then either resolved by AI or handed to a human">
+            <path class="pipe-base" d="M 90 110 L 330 110 Q 360 110 380 80 L 520 40 Q 540 34 560 40 L 760 80"/>
+            <path class="pipe-base" d="M 330 110 Q 360 110 380 140 L 520 180 Q 540 186 560 180 L 760 140"/>
+            <path class="pipe-draw" id="pipe-path" pathLength="1000" d="M 90 110 L 330 110 Q 360 110 380 80 L 520 40 Q 540 34 560 40 L 760 80"/>
+            <path class="pipe-draw" id="pipe-path-2" pathLength="1000" style="transition-delay:.9s" d="M 330 110 Q 360 110 380 140 L 520 180 Q 540 186 560 180 L 760 140"/>
+
+            <circle class="pipe-node" cx="90" cy="110" r="10"/>
+            <circle class="pipe-node hot" cx="330" cy="110" r="10"/>
+            <circle class="pipe-node" cx="760" cy="80" r="10"/>
+            <circle class="pipe-node" cx="760" cy="140" r="10"/>
+
+            <text class="pipe-label" x="90" y="92" text-anchor="middle">INBOUND</text>
+            <text class="pipe-sub" x="90" y="140" text-anchor="middle">email · chat · DM</text>
+            <text class="pipe-label" x="330" y="92" text-anchor="middle">AI AGENT</text>
+            <text class="pipe-sub" x="330" y="140" text-anchor="middle">reads context</text>
+            <text class="pipe-label" x="800" y="72">RESOLVED</text>
+            <text class="pipe-sub" x="800" y="92">AI closes the loop</text>
+            <text class="pipe-label" x="800" y="152">HANDOFF</text>
+            <text class="pipe-sub" x="800" y="172">human, with context</text>
+
+            <circle class="pipe-dot" r="5" id="pipe-dot" cx="90" cy="110"/>
+          </svg>
+        </div>
+
+        <div class="pipe-steps reveal" style="--d:.2s">
+          <div><b>Intake</b>Messages arrive from every channel into one queue.</div>
+          <div><b>Reason</b>The agent checks order, shipping, and policy data before it answers.</div>
+          <div><b>Guardrails</b>Refunds, edge cases, and low-confidence replies are routed by rule.</div>
+          <div><b>Learn</b>Failures become new rules, and results are reported weekly.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="work" class="section" aria-labelledby="work-title">
+      <div class="site-inner">
+        <p class="eyebrow reveal">03 / Work</p>
+        <h2 id="work-title" class="display section-heading reveal" style="--d:.05s">Systems built for real support traffic.</h2>
+        <p class="section-lead reveal" style="--d:.1s; margin-top:16px;">Three e-commerce case studies. Each one connects the operational work to a clearly scoped result.</p>
+
+        <div class="project-grid">
+          <a href="./supplement-brand/" class="project-card reveal" style="--d:.05s">
+            <span class="eyebrow" style="font-size:11px;">Supplement brand · Apr 2026 to present</span>
+            <h3 class="display">29,900+ conversations resolved by AI.</h3>
+            <p>Took over the AI support agent and taught it to finish the job: rules, guardrails, voice, automations, help center, and storefront fixes.</p>
+            <div class="project-stats">
+              <span class="stat-tag">29,900+ AI-resolved</span>
+              <span class="stat-tag">51 → 75% satisfaction</span>
+            </div>
+            <span class="project-link">View supplement brand case study →</span>
+          </a>
+
+          <a href="./sportswear-brand/" class="project-card reveal" style="--d:.12s">
+            <span class="eyebrow" style="font-size:11px;">Sportswear brand · Sept 2026 to present</span>
+            <h3 class="display">216 estimated support hours saved.</h3>
+            <p>Consolidated fractured order rules, expanded international return routing, and scaled automated resolution across high-volume traffic.</p>
+            <div class="project-stats">
+              <span class="stat-tag">2,163 AI-resolved</span>
+              <span class="stat-tag">216 hours saved</span>
+            </div>
+            <span class="project-link">View sportswear brand case study →</span>
+          </a>
+
+          <a href="./clothing-brand/" class="project-card reveal" style="--d:.19s">
+            <span class="eyebrow" style="font-size:11px;">Clothing brand · Sept 2026 to present</span>
+            <h3 class="display">94.5% AI resolution under apparel traffic.</h3>
+            <p>Maintained a 94.5% AI resolution rate and engineered high-capacity workflows handling major media surge traffic.</p>
+            <div class="project-stats">
+              <span class="stat-tag">94.5% auto-resolution</span>
+              <span class="stat-tag">2,415 AI-resolved</span>
+            </div>
+            <span class="project-link">View clothing brand case study →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="methodology" class="section" aria-labelledby="methodology-title">
+      <div class="site-inner">
+        <p class="eyebrow reveal">04 / Methodology</p>
+        <h2 id="methodology-title" class="display section-heading reveal" style="--d:.05s">How the results were created.</h2>
+
+        <div class="step-grid">
+          <div class="step-card reveal" style="--d:.05s">
+            <span class="eyebrow" style="font-size:11px;">01 / Find</span>
+            <h3 class="display">Identify recurring questions and bottlenecks.</h3>
+            <p>Start with the support work customers and agents encounter repeatedly.</p>
+          </div>
+          <div class="step-card reveal" style="--d:.12s">
+            <span class="eyebrow" style="font-size:11px;">02 / Design</span>
+            <h3 class="display">Design logic, escalation rules, and knowledge flows.</h3>
+            <p>Give the AI a clear path to resolve common inquiries and route exceptions.</p>
+          </div>
+          <div class="step-card reveal" style="--d:.19s">
+            <span class="eyebrow" style="font-size:11px;">03 / Measure</span>
+            <h3 class="display">Measure outcomes and find what needs improving.</h3>
+            <p>Track resolution, estimated time saved, failure cases, and improvement opportunities.</p>
+          </div>
+        </div>
+
+        <div class="method-note reveal">
+          Methodology note: Hours saved are estimates based on AI-resolved conversations × 6 minutes. The 94.5% AI resolution rate is specific to the clothing brand case study, not a portfolio-wide rate.
+        </div>
+      </div>
+    </section>
+
+    <section class="section positioning" aria-labelledby="positioning-title">
+      <div class="site-inner">
+        <p class="eyebrow reveal">05 / What I do</p>
+        <h2 id="positioning-title" class="display section-heading reveal" style="--d:.05s">I turn messy customer-support processes into measurable AI workflows.</h2>
+        <p class="section-lead reveal" style="--d:.1s; margin-top:16px;">My work spans conversational AI, help desk systems, Shopify e-commerce, workflow design, and operational reporting—connecting support operations with results you can examine.</p>
+        <div class="reveal" style="margin-top:28px;">
+          <a class="action action-primary" href="#work">Explore the work →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="site-inner">
+      <p style="font-size:14px;">ALEC · AI OPERATIONS &amp; SYSTEMS</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fmt = function (n) { return n.toLocaleString('en-US'); };
+
+  /* 1. Scroll reveals for everything marked .reveal, plus the pipeline and counters */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var el = e.target;
+      io.unobserve(el);
+      el.classList.add('in');
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.reveal, .pipeline').forEach(function (el) { io.observe(el); });
+
+  /* Counters */
+  function countUp(card) {
+    if (!card) return;
+    card.querySelectorAll('.count').forEach(function (c) {
+      var to = +c.dataset.to, dec = +(c.dataset.dec || 0), suf = c.dataset.suffix || '';
+      if (reduce) return;
+      var t0 = performance.now(), dur = 1300;
+      (function tick(t) {
+        var p = Math.min(1, (t - t0) / dur), v = to * (1 - Math.pow(1 - p, 3));
+        c.textContent = (dec ? v.toFixed(dec) : fmt(Math.round(v))) + suf;
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }
+  // Counters start at their real values for reduced motion; otherwise they count up on reveal.
+  document.querySelectorAll('.proof-card').forEach(function (card) {
+    var io2 = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { countUp(card); io2.disconnect(); } });
+    }, { threshold: 0.5 });
+    io2.observe(card);
+  });
+
+  /* 2. Pipeline: a dot travels the drawn path once the diagram is in view */
+  var pipe = document.getElementById('pipeline');
+  var dot = document.getElementById('pipe-dot');
+  var path = document.getElementById('pipe-path');
+  if (pipe && dot && path && !reduce) {
+    var started = false;
+    new IntersectionObserver(function (es, obs) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting || started) return;
+        started = true; obs.disconnect();
+        var len = path.getTotalLength(), t0 = null;
+        (function step(t) {
+          if (t0 === null) t0 = t;
+          var p = ((t - t0) / 3200) % 1;
+          var pt = path.getPointAtLength(len * p);
+          dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+          requestAnimationFrame(step);
+        })(performance.now());
+      });
+    }, { threshold: 0.5 }).observe(pipe);
+  } else if (dot) { dot.style.display = 'none'; }
+
+  /* 3. Live routing feed in the hero */
+  var feed = document.getElementById('feed');
+  var aiCount = document.getElementById('ai-count');
+  var humanCount = document.getElementById('human-count');
+  var tickets = [
+    ['#4821', 'Where is my order? Tracking shows delivered', 'ai'],
+    ['#4822', 'Exchange a size M for L, no receipt', 'ai'],
+    ['#4823', 'Damaged item, wants refund and photo review', 'human'],
+    ['#4824', 'Return to Canada, duty question', 'ai'],
+    ['#4825', 'Change delivery address after dispatch', 'ai'],
+    ['#4826', 'Chargeback threat, order over policy limit', 'human'],
+    ['#4827', 'Restock date for a discontinued colour', 'ai'],
+    ['#4828', 'Bulk order for a team, custom sizing', 'human']
+  ];
+  var ai = 0, human = 0, idx = 0;
+  function label(kind) { return kind === 'ai' ? 'AI RESOLVED' : 'HANDED TO HUMAN'; }
+  function addRow() {
+    var t = tickets[idx % tickets.length]; idx++;
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="id"></span><span class="topic"></span><span class="tag"></span>';
+    li.querySelector('.id').textContent = t[0];
+    li.querySelector('.topic').textContent = t[1];
+    var tag = li.querySelector('.tag');
+    tag.className = 'tag ' + (t[2] === 'ai' ? 'ai' : 'human');
+    tag.textContent = label(t[2]);
+    feed.insertBefore(li, feed.firstChild);
+    if (feed.children.length > 5) feed.removeChild(feed.lastChild);
+    requestAnimationFrame(function () { li.classList.add('show'); });
+    if (t[2] === 'ai') ai++; else human++;
+    aiCount.textContent = fmt(ai + 2140);
+    humanCount.textContent = fmt(human + 310);
+  }
+  if (feed) {
+    if (reduce) {
+      for (var i = 0; i < 5; i++) addRow();
+    } else {
+      addRow();
+      setInterval(addRow, 1600);
+    }
+  }
+
+  /* 4. Scroll progress bar */
+  var bar = document.querySelector('.progress');
+  if (bar && !reduce) {
+    var onScroll = function () {
+      var max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? scrollY / max : 0) + ')';
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+})();
+</script>
+</body>
+</html>
